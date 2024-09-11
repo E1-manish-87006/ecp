@@ -6,7 +6,7 @@ Test the program using values 3,4,5 and 1, 2, 3 and 1, 2, 4 for a, b, c. Observe
 #include<stdio.h>
 #include<math.h>
 void main(){
-	int a,b,c;
+int a,b,c;
 	scanf("%d%d%d",&a,&b,&c);
 	printf("perimeter=%d",(a+b+c));
 	float s=(a+b+c)/2;
