@@ -1,116 +1,216 @@
-#include<stdio.h>
-
-typedef struct employee{
-	int eid;
-	char name[20];
-	char address[20];
-	double salary;
-}e_t;
-
-e_t e1;
-void accept_emp(e_t *emp);
-void print_emp(e_t *emp);
-
-void add_emp(e_t *emp);
-void prints_emp(e_t *emp);
-void search_emp(int eid);
-void edit_emp(int eid,double salary);
-void delete_emp(int id);
-
-int main(){
-	int ch;
-//	e_t e1;
-	do{
-		printf("enter0:exit and  1-add,2-prints,3-search,4-edit,5-delete according to above  function declarations \n");
-		scanf("%d",&ch);
-		switch(ch){
-			case 1:
-				accept_emp(&e1);
-				add_emp(&e1);
-				break;
-			case 2:
-				prints_emp(&e1);
-				break;
-			case 3:
-				search_emp(3);
-				break;
-			case 4:
-				edit_emp(3,90000);
-				break;
-			case 5:
-				delete_emp(3);
-				break;
-			}
-		}while(ch!=0);
+/**6. Write a menu driven program to make a student database. Make program readable by using
+enumerations.
+Write functions using binary file and unformatted I/O
+a. Write student’s record to file.
+b. Read student’s record from file.
+c. Search of student’s record in a file by roll number.
+d. Search student’s record by name.
+e. Modify of student’s record in a file.
+f. Remove of student’s record in a file.**/
 
 
-return 0;
+#include <stdio.h>
+#include <stdlib.h>
+#include<string.h>
+typedef enum {
+    WRITE_RECORD,
+    READ_RECORD,
+    SEARCH_BY_ROLL,
+    SEARCH_BY_NAME,
+    MODIFY_RECORD,
+    REMOVE_RECORD,
+    EXIT
+} MenuOption;
+
+typedef struct {
+    int rollNumber;
+    char name[50];
+    float marks;
+} Student;
+
+void writeRecord() {
+    FILE *file = fopen("student.db", "ab");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(1);
+    }
+
+    Student student;
+    printf("Enter roll number: ");
+    scanf("%d", &student.rollNumber);
+    printf("Enter name: ");
+    scanf(" %[^\n]", student.name);
+    printf("Enter marks: ");
+    scanf("%f", &student.marks);
+
+    fwrite(&student, sizeof(Student), 1, file);
+    fclose(file);
 }
 
+void readRecord() {
+    FILE *file = fopen("student.db", "rb");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(1);
+    }
 
-void accept_emp(e_t *emp){
-	printf("enter employee data:");
-	scanf("%d %s %s %lf",&emp->eid,emp->name,emp->address,&emp->salary);
+    Student student;
+    while (fread(&student, sizeof(Student), 1, file) == 1) {
+        printf("Roll Number: %d\n", student.rollNumber);
+        printf("Name: %s\n", student.name);
+        printf("Marks: %.2f\n\n", student.marks);
+    }
 
+    fclose(file);
 }
 
-void print_emp(e_t *emp){
-	printf("%d %s %s %lf\n",emp->eid,emp->name,emp->address,emp->salary);
+void searchByRoll() {
+    FILE *file = fopen("student.db", "rb");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(1);
+    }
+
+    int roll;
+    printf("Enter roll number to search: ");
+    scanf("%d", &roll);
+
+    Student student;
+    while (fread(&student, sizeof(Student), 1, file) == 1) {
+        if (student.rollNumber == roll) {
+            printf("Record found:\n");
+            printf("Roll Number: %d\n", student.rollNumber);
+            printf("Name: %s\n", student.name);
+            printf("Marks: %.2f\n\n", student.marks);
+            return;
+        }
+    }
+
+    printf("Record not found.\n");
+    fclose(file);
 }
 
-void add_emp(e_t *emp){
-	FILE *fp=fopen("emp.txt","ab");
-	fwrite(emp,sizeof(e_t),1,fp);
-	fclose(fp);
+void searchByName() {
+    FILE *file = fopen("student.db", "rb");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(1);
+    }
+
+    char name[50];
+    printf("Enter name to search: ");
+    scanf(" %[^\n]", name);
+
+    Student student;
+    while (fread(&student, sizeof(Student), 1, file) == 1) {
+        if (strcmp(student.name, name) == 0) {
+            printf("Record found:\n");
+            printf("Roll Number: %d\n", student.rollNumber);
+            printf("Name: %s\n", student.name);
+            printf("Marks: %.2f\n\n", student.marks);
+            return;
+        }
+    }
+
+    printf("Record not found.\n");
+    fclose(file);
 }
 
-void prints_emp(e_t *emp){
-	FILE *fp=fopen("emp.txt","rb");
-	while(fread(emp,sizeof(e_t),1,fp)>0){
-		print_emp(&e1);
-	}
-	fclose(fp);
+void modifyRecord() {
+    FILE *file = fopen("student.db", "rb+");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(1);
+    }
+
+    int roll;
+    printf("Enter roll number to modify: ");
+    scanf("%d", &roll);
+
+    Student student;
+    while (fread(&student, sizeof(Student), 1, file) == 1) {
+        if (student.rollNumber == roll) {
+            printf("Record found:\n");
+            printf("Enter new name: ");
+            scanf(" %[^\n]", student.name);
+            printf("Enter new marks: ");
+            scanf("%f", &student.marks);
+
+            fseek(file, -sizeof(Student), SEEK_CUR);
+            fwrite(&student, sizeof(Student), 1, file);
+            return;
+        }
+    }
+
+    printf("Record not found.\n");
+    fclose(file);
 }
 
-void search_emp(int eid){
-	e_t emp;
-	FILE *fp=fopen("emp.txt","rb");
-	while(fread(&emp,sizeof(e_t),1,fp)!=0){
-		if(eid==emp.eid){
-			print_emp(&e1);
-			break;
-		}
-	}
-	fclose(fp);
+void removeRecord() {
+    FILE *file = fopen("student.db", "rb");
+    FILE *temp = fopen("temp.db", "wb");
+    if (file == NULL || temp == NULL) {
+        perror("Error opening file");
+        exit(1);
+    }
+
+    int roll;
+    printf("Enter roll number to remove: ");
+    scanf("%d", &roll);
+
+    Student student;
+    while (fread(&student, sizeof(Student), 1, file) == 1) {
+        if (student.rollNumber != roll) {
+            fwrite(&student, sizeof(Student), 1, temp);
+        }
+    }
+
+    fclose(file);
+    fclose(temp);
+    remove("student.db");
+    rename("temp.db", "student.db");
 }
 
-void edit_emp(int eid,double sal){
-	e_t emp;
-	FILE *fp=fopen("emp.txt","rb+");
-	while(fread(&emp,sizeof(e_t),1,fp)!=0){
-		if(eid==emp.eid){
-			fseek(fp,-sizeof(e_t),SEEK_CUR);
-			emp.salary=sal;
-			fwrite(&emp,sizeof(e_t),1,fp);
-			break;
-		}
-	}
-	fclose(fp);
+int main() {
+    while (1) {
+        printf("Student Database Menu:\n");
+        printf("1. Write Record\n");
+        printf("2. Read Record\n");
+        printf("3. Search By Roll Number\n");
+        printf("4. Search By Name\n");
+        printf("5. Modify Record\n");
+        printf("6. Remove Record\n");
+        printf("7. Exit\n");
+
+        int choice;
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case WRITE_RECORD:
+                writeRecord();
+                break;
+            case READ_RECORD:
+                readRecord();
+                break;
+            case SEARCH_BY_ROLL:
+                searchByRoll();
+                break;
+            case SEARCH_BY_NAME:
+                searchByName();
+                break;
+            case MODIFY_RECORD:
+                modifyRecord();
+                break;
+            case REMOVE_RECORD:
+                removeRecord();
+                break;
+            case EXIT:
+                exit(0);
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    }
+
+    return 0;
 }
-
-void delete_emp(int eid){
-	e_t emp;
-	FILE *fp=fopen("emp.txt","rb");
-	FILE *tp=fopen("emp.txt","wb");
-	while(fread(&emp,sizeof(e_t),1,fp)>0){
-		if(eid!=emp.eid){
-			fwrite(&emp,sizeof(e_t),1,tp);
-			break;
-		}
-	}
-	fclose(fp);
-	fclose(tp);
-	rename("temp.txt","emp.txt");
-}
-
-
