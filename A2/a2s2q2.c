@@ -1,5 +1,3 @@
-/****2. Write a program to crate four function calculator. Four functions are +, - , *, /     ****/
-
 #include<stdio.h>
 int main(){
 int n1,n2;

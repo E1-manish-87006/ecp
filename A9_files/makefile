@@ -1,4 +1,4 @@
-TARGET=a9q3
+TARGET=demo9
 
 CC=gcc
 
